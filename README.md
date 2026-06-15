@@ -8,6 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v1.0.0 | [`v1.0.0`](https://github.com/chainguard-actions/zkoppert-innersource-crawler/tree/v1.0.0) | [`413f39f`](https://github.com/zkoppert/innersource-crawler/commit/413f39fedac09ec6444cbc7a30c5143f17b3f697) |
 | v1.0.2 | [`v1.0.2`](https://github.com/chainguard-actions/zkoppert-innersource-crawler/tree/v1.0.2) | [`08f5094`](https://github.com/zkoppert/innersource-crawler/commit/08f509439463e28f0f118bff8df88dd7418c3619) |
 | v1.0.4 | [`v1.0.4`](https://github.com/chainguard-actions/zkoppert-innersource-crawler/tree/v1.0.4) | [`01cca50`](https://github.com/zkoppert/innersource-crawler/commit/01cca504ec85d5fae49033dfa65af0c4a667b14e) |
 
