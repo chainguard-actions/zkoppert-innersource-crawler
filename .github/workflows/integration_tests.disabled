@@ -1,0 +1,15 @@
+# TEMP Disable workflow
+# See https://github.com/ryan-rozario/pipreqs-action/issues/6 to follow the issue
+#name: Integration Test
+#on: [push]
+#jobs:
+#  build:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#      - name: Update requirements.txt
+#        uses: ryan-rozario/pipreqs-action@v2.0.0
+#        with:
+#          PROJECT_PATH: .
+#          REQUIREMENT_PATH: ./requirements.txt

@@ -1,0 +1,66 @@
+name: Test multiple topics (comma-separated)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up git origin reachable inside Docker container
+        run: |
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+          rm -rf "$GITHUB_WORKSPACE/.git-remote"
+          git init --bare "$GITHUB_WORKSPACE/.git-remote"
+          git push "$GITHUB_WORKSPACE/.git-remote" HEAD:refs/heads/act-harness
+          git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
+            git remote add origin "$GITHUB_WORKSPACE/.git-remote"
+
+      - name: Run InnerSource Crawler with multiple topics
+        uses: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORGANIZATION: zkoppert
+          TOPIC: inner-source,innersource
+
+      - name: Assert repos.json was created
+        run: |
+          echo "Checking for repos.json..."
+          if [ ! -f "repos.json" ]; then
+            echo "FAIL: repos.json was not created"
+            exit 1
+          fi
+          echo "PASS: repos.json exists"
+
+      - name: Assert repos.json is valid JSON array
+        run: |
+          echo "Validating repos.json content..."
+          TYPE=$(python3 -c "import json; data = json.load(open('repos.json')); print(type(data).__name__)")
+          echo "actual type: $TYPE"
+          if [ "$TYPE" != "list" ]; then
+            echo "FAIL: expected repos.json to be a JSON array (list), got: $TYPE"
+            exit 1
+          fi
+          echo "PASS: repos.json is a valid JSON array"
+
+      - name: Assert repos.json entries have expected fields
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          with open("repos.json") as f:
+              data = json.load(f)
+          print(f"Total repos found: {len(data)}")
+          if len(data) == 0:
+              print("No repos found for topics, but repos.json is valid - PASS")
+              sys.exit(0)
+          # Check first entry has expected structure
+          first = data[0]
+          required_keys = ["score", "_InnerSourceMetadata"]
+          for key in required_keys:
+              if key not in first:
+                  print(f"FAIL: missing key '{key}' in repo entry")
+                  sys.exit(1)
+          print("PASS: repo entries have expected fields")
+          EOF
