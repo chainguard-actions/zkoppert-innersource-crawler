@@ -1,0 +1,67 @@
+name: Test multiple topics
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run InnerSource Crawler with multiple topics
+        uses: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORGANIZATION: github
+          TOPIC: open-source,security
+
+      - name: Assert repos.json was created
+        run: |
+          echo "Checking for repos.json..."
+          if [ ! -f "repos.json" ]; then
+            echo "FAIL: repos.json was not created"
+            exit 1
+          fi
+          echo "PASS: repos.json exists"
+
+      - name: Assert repos.json is valid JSON array
+        run: |
+          echo "Validating repos.json content..."
+          RESULT=$(python3 -c "
+          import json, sys
+          try:
+              data = json.load(open('repos.json'))
+              if not isinstance(data, list):
+                  print('NOT_LIST')
+                  sys.exit(1)
+              print('OK:' + str(len(data)))
+          except Exception as e:
+              print('ERROR:' + str(e))
+              sys.exit(1)
+          ")
+          echo "actual: $RESULT"
+          if echo "$RESULT" | grep -q "^OK:"; then
+            echo "PASS: repos.json is a valid JSON array"
+          else
+            echo "FAIL: repos.json validation failed: $RESULT"
+            exit 1
+          fi
+
+      - name: Assert repos.json entries have expected fields
+        run: |
+          python3 -c "
+          import json, sys
+          data = json.load(open('repos.json'))
+          if len(data) == 0:
+              print('INFO: no repos found (topic may not match any repos)')
+              sys.exit(0)
+          # Check first entry has expected fields
+          first = data[0]
+          required = ['full_name', 'description', 'score', '_InnerSourceMetadata']
+          missing = [f for f in required if f not in first]
+          if missing:
+              print('FAIL: missing fields:', missing)
+              sys.exit(1)
+          print('PASS: first entry has all expected fields')
+          print('Sample repo:', first.get('full_name', 'unknown'))
+          "
